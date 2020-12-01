@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30621.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Eruru.Http For Shared Project", "Eruru.Http For Shared Project\Eruru.Http For Shared Project.shproj", "{35DABFFE-C014-4D91-805B-20DD5E83BAEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{0DD7209D-E12C-4CF9-BA69-E9F6A02FE06C}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Eruru.Http For Shared Project\Eruru.Http For Shared Project.projitems*{0dd7209d-e12c-4cf9-ba69-e9f6a02fe06c}*SharedItemsImports = 4
+		Eruru.Http For Shared Project\Eruru.Http For Shared Project.projitems*{35dabffe-c014-4d91-805b-20dd5e83baea}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0DD7209D-E12C-4CF9-BA69-E9F6A02FE06C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DD7209D-E12C-4CF9-BA69-E9F6A02FE06C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DD7209D-E12C-4CF9-BA69-E9F6A02FE06C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DD7209D-E12C-4CF9-BA69-E9F6A02FE06C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DE2A4E83-0186-4990-90EA-C64BA3E2D2D3}
+	EndGlobalSection
+EndGlobal
