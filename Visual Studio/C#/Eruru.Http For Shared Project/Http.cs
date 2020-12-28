@@ -7,7 +7,7 @@ namespace Eruru.Http {
 
 	public class Http {
 
-		public int BufferLength { get; set; } = 1024;
+		public int BufferSize { get; set; } = 1024;
 		public Encoding Encoding { get; set; } = Encoding.UTF8;
 		public CookieContainer CookieContainer {
 
@@ -43,11 +43,26 @@ namespace Eruru.Http {
 			if (responseStream is null) {
 				throw new ArgumentNullException (nameof (responseStream));
 			}
-			StringBuilder stringBuilder = new StringBuilder (information.Url);
+			if (information.Url is null) {
+				throw new Exception ($"{nameof (HttpRequestInformation)}的{nameof (HttpRequestInformation.Url)}不可以为空");
+			}
+			StringBuilder stringBuilder = new StringBuilder ();
+			int questionMarkIndex = information.Url.IndexOf ('?');
+			bool hasParameter = false;
+			if (questionMarkIndex == -1) {
+				stringBuilder.Append (information.Url);
+			} else {
+				stringBuilder.Append (information.Url.Substring (0, questionMarkIndex));
+				if (questionMarkIndex < information.Url.Length - 1) {
+					hasParameter = true;
+					stringBuilder.Append ($"?{(HttpParameterCollection)information.Url.Substring (questionMarkIndex + 1)}");
+				}
+			}
 			if (information.QueryStringParameters != null) {
-				stringBuilder.Append ('?');
+				stringBuilder.Append (hasParameter ? '&' : '?');
 				stringBuilder.Append (information.QueryStringParameters);
 			}
+			Console.WriteLine (stringBuilder.ToString ());
 			HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create (stringBuilder.ToString ());
 			httpWebRequest.Method = information.Type.ToString ();
 			httpWebRequest.CookieContainer = CookieContainer;
@@ -55,7 +70,7 @@ namespace Eruru.Http {
 			if (information.FormData != null) {
 				using (information.FormData) {
 					using (Stream stream = httpWebRequest.GetRequestStream ()) {
-						byte[] buffer = new byte[BufferLength];
+						byte[] buffer = new byte[BufferSize];
 						while (true) {
 							int length = information.FormData.Stream.Read (buffer, 0, buffer.Length);
 							if (length > 0) {
@@ -69,7 +84,7 @@ namespace Eruru.Http {
 			using (HttpWebResponse httpWebResponse = HttpAPI.GetResponse (httpWebRequest)) {
 				information.Response?.Invoke (httpWebResponse);
 				using (Stream stream = httpWebResponse.GetResponseStream ()) {
-					byte[] buffer = new byte[BufferLength];
+					byte[] buffer = new byte[BufferSize];
 					while (true) {
 						int length = stream.Read (buffer, 0, buffer.Length);
 						if (length <= 0) {

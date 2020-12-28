@@ -11,11 +11,11 @@ namespace Eruru.Http {
 			Name = name ?? throw new ArgumentNullException (nameof (name));
 		}
 		public HttpParameter (string name, object value) {
-			if (value is null) {
-				throw new ArgumentNullException (nameof (value));
-			}
 			Name = name ?? throw new ArgumentNullException (nameof (name));
-			Value = value.ToString ();
+			if (value is null) {
+				return;
+			}
+			Value = HttpAPI.UrlEncode (HttpAPI.UrlDecode (value.ToString ()));
 		}
 
 	}

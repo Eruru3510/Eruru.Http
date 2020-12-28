@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net20;netstandard2.0</TargetFrameworks>
+		<Version>1.0.0.1</Version>
+	</PropertyGroup>
+
+	<Import Project="..\Eruru.Http For Shared Project\Eruru.Http For Shared Project.projitems" Label="Shared" />
+
+</Project>

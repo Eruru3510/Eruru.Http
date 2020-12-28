@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Eruru.Http {
+﻿namespace Eruru.Http {
 
 	public enum HttpRequestType {
 

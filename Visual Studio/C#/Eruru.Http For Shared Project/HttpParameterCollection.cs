@@ -17,6 +17,16 @@ namespace Eruru.Http {
 		public HttpParameterCollection () {
 
 		}
+		public HttpParameterCollection (string text) {
+			if (text is null) {
+				throw new ArgumentNullException (nameof (text));
+			}
+			string[] pairs = text.Split ('&');
+			foreach (string pair in pairs) {
+				string[] datas = pair.Split ('=');
+				Add (datas[0], datas.Length == 1 ? null : datas[1]);
+			}
+		}
 		public HttpParameterCollection (IEnumerable<HttpParameter> parameters) {
 			if (parameters is null) {
 				throw new ArgumentNullException (nameof (parameters));
@@ -52,6 +62,9 @@ namespace Eruru.Http {
 					stringBuilder.Append ('&');
 				}
 				stringBuilder.Append (base[i].Name);
+				if (base[i].Value is null) {
+					continue;
+				}
 				stringBuilder.Append ('=');
 				stringBuilder.Append (base[i].Value);
 			}
@@ -60,6 +73,9 @@ namespace Eruru.Http {
 
 		public static implicit operator string (HttpParameterCollection parameters) {
 			return parameters?.ToString () ?? string.Empty;
+		}
+		public static implicit operator HttpParameterCollection (string text) {
+			return new HttpParameterCollection (text);
 		}
 
 		HttpParameter GetOrCreate (string name, object value = null) {

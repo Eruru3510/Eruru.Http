@@ -8,7 +8,7 @@ namespace Eruru.Http {
 	public delegate void HttpAction ();
 	public delegate bool HttpResponsingFunc (bool isDone, Stream stream);
 
-	static class HttpAPI {
+	public static class HttpAPI {
 
 		public static string UrlEncode (string url) {
 			if (url is null) {
@@ -36,28 +36,38 @@ namespace Eruru.Http {
 						continue;
 				}
 				stringBuilder.Append ('%');
-				stringBuilder.Append (IntToHex (bytes[i] >> 4 & 0xf));
+				stringBuilder.Append (IntToHex (bytes[i] >> 4));
 				stringBuilder.Append (IntToHex (bytes[i] & 0xf));
 			}
 			return stringBuilder.ToString ();
 		}
 
+		public static string UrlDecode (string url) {
+			if (url is null) {
+				throw new ArgumentNullException (nameof (url));
+			}
+			StringBuilder stringBuilder = new StringBuilder ();
+			byte[] bytes = Encoding.UTF8.GetBytes (url);
+			for (int i = 0; i < url.Length; i++) {
+				if (url[i] == '%') {
+					stringBuilder.Append (HexToInt (url[++i]) << 4 + HexToInt (url[++i]));
+					continue;
+				}
+				stringBuilder.Append (url[i]);
+			}
+			return stringBuilder.ToString ();
+		}
+
 		public static bool Equals (string a, string b) {
-			if (a is null) {
-				throw new ArgumentNullException (nameof (a));
-			}
-			if (b is null) {
-				throw new ArgumentNullException (nameof (b));
-			}
 			return string.Equals (a, b, StringComparison.CurrentCultureIgnoreCase);
 		}
 
-		public static HttpWebResponse GetResponse (HttpWebRequest webRequest) {
-			if (webRequest is null) {
-				throw new ArgumentNullException (nameof (webRequest));
+		public static HttpWebResponse GetResponse (HttpWebRequest httpWebRequest) {
+			if (httpWebRequest is null) {
+				throw new ArgumentNullException (nameof (httpWebRequest));
 			}
 			try {
-				return (HttpWebResponse)webRequest.GetResponse ();
+				return (HttpWebResponse)httpWebRequest.GetResponse ();
 			} catch (WebException webException) {
 				if (webException.Response is null) {
 					throw;
@@ -71,6 +81,13 @@ namespace Eruru.Http {
 				return (char)('0' + value);
 			}
 			return (char)('a' + value - 10);
+		}
+
+		static int HexToInt (char value) {
+			if (value <= '9') {
+				return value - '0';
+			}
+			return value - 'a' + 10;
 		}
 
 	}
