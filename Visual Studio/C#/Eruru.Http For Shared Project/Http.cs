@@ -32,8 +32,14 @@ namespace Eruru.Http {
 			if (information is null) {
 				throw new ArgumentNullException (nameof (information));
 			}
+			return Request (null, information);
+		}
+		public string Request (string url, HttpRequestInformation information) {
+			if (information is null) {
+				throw new ArgumentNullException (nameof (information));
+			}
 			MemoryStream memoryStream = new MemoryStream ();
-			Request (information, memoryStream);
+			Request (url, information, memoryStream);
 			return Encoding.UTF8.GetString (memoryStream.ToArray ());
 		}
 		public void Request (HttpRequestInformation information, Stream responseStream) {
@@ -43,26 +49,34 @@ namespace Eruru.Http {
 			if (responseStream is null) {
 				throw new ArgumentNullException (nameof (responseStream));
 			}
-			if (information.Url is null) {
-				throw new Exception ($"{nameof (HttpRequestInformation)}的{nameof (HttpRequestInformation.Url)}不可以为空");
+			Request (null, information, responseStream);
+		}
+		public void Request (string url, HttpRequestInformation information, Stream responseStream) {
+			if (information is null) {
+				throw new ArgumentNullException (nameof (information));
+			}
+			if (responseStream is null) {
+				throw new ArgumentNullException (nameof (responseStream));
+			}
+			if (url is null) {
+				url = information.Url;
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
-			int questionMarkIndex = information.Url.IndexOf ('?');
+			int questionMarkIndex = url.IndexOf ('?');
 			bool hasParameter = false;
 			if (questionMarkIndex == -1) {
-				stringBuilder.Append (information.Url);
+				stringBuilder.Append (url);
 			} else {
-				stringBuilder.Append (information.Url.Substring (0, questionMarkIndex));
-				if (questionMarkIndex < information.Url.Length - 1) {
+				stringBuilder.Append (url.Substring (0, questionMarkIndex));
+				if (questionMarkIndex < url.Length - 1) {
 					hasParameter = true;
-					stringBuilder.Append ($"?{(HttpParameterCollection)information.Url.Substring (questionMarkIndex + 1)}");
+					stringBuilder.Append ($"?{(HttpParameterCollection)url.Substring (questionMarkIndex + 1)}");
 				}
 			}
 			if (information.QueryStringParameters != null) {
 				stringBuilder.Append (hasParameter ? '&' : '?');
 				stringBuilder.Append (information.QueryStringParameters);
 			}
-			Console.WriteLine (stringBuilder.ToString ());
 			HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create (stringBuilder.ToString ());
 			httpWebRequest.Method = information.Type.ToString ();
 			httpWebRequest.CookieContainer = CookieContainer;
@@ -105,7 +119,15 @@ namespace Eruru.Http {
 				throw new ArgumentNullException (nameof (information));
 			}
 			MemoryStream memoryStream = new MemoryStream ();
-			Request (information, memoryStream);
+			Request (null, information, memoryStream);
+			return memoryStream.ToArray ();
+		}
+		public byte[] RequestBytes (string url, HttpRequestInformation information) {
+			if (information is null) {
+				throw new ArgumentNullException (nameof (information));
+			}
+			MemoryStream memoryStream = new MemoryStream ();
+			Request (url, information, memoryStream);
 			return memoryStream.ToArray ();
 		}
 

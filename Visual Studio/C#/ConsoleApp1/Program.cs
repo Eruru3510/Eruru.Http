@@ -9,7 +9,7 @@ namespace ConsoleApp1 {
 
 		static void Main (string[] args) {
 			Console.Title = nameof (ConsoleApp1);
-			TestPixivic ();
+			Test ();
 			Console.ReadLine ();
 		}
 

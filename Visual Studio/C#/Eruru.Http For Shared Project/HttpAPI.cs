@@ -47,7 +47,6 @@ namespace Eruru.Http {
 				throw new ArgumentNullException (nameof (url));
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
-			byte[] bytes = Encoding.UTF8.GetBytes (url);
 			for (int i = 0; i < url.Length; i++) {
 				if (url[i] == '%') {
 					stringBuilder.Append (HexToInt (url[++i]) << 4 + HexToInt (url[++i]));
@@ -59,7 +58,7 @@ namespace Eruru.Http {
 		}
 
 		public static bool Equals (string a, string b) {
-			return string.Equals (a, b, StringComparison.CurrentCultureIgnoreCase);
+			return string.Equals (a, b, StringComparison.OrdinalIgnoreCase);
 		}
 
 		public static HttpWebResponse GetResponse (HttpWebRequest httpWebRequest) {
