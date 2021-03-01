@@ -8,7 +8,7 @@ namespace Eruru.Http {
 	public delegate void HttpAction ();
 	public delegate bool HttpResponsingFunc (bool isDone, Stream stream);
 
-	public static class HttpAPI {
+	public static class HttpApi {
 
 		public static string UrlEncode (string url) {
 			if (url is null) {
@@ -48,7 +48,7 @@ namespace Eruru.Http {
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			for (int i = 0; i < url.Length; i++) {
-				if (url[i] == '%') {
+				if (url[i] == '%' && i < url.Length - 2) {
 					stringBuilder.Append (HexToInt (url[++i]) << 4 + HexToInt (url[++i]));
 					continue;
 				}
@@ -61,7 +61,7 @@ namespace Eruru.Http {
 			return string.Equals (a, b, StringComparison.OrdinalIgnoreCase);
 		}
 
-		public static HttpWebResponse GetResponse (HttpWebRequest httpWebRequest) {
+		internal static HttpWebResponse GetResponse (HttpWebRequest httpWebRequest) {
 			if (httpWebRequest is null) {
 				throw new ArgumentNullException (nameof (httpWebRequest));
 			}

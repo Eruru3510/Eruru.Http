@@ -10,11 +10,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Http.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)HttpAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HttpApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpFormData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpRequestInformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpParameterCollection.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)HttpParameter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpRequestType.cs" />
   </ItemGroup>
 </Project>

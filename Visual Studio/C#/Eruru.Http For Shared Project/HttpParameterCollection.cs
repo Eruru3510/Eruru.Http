@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Eruru.Http {
 
-	public class HttpParameterCollection : List<HttpParameter> {
+	public class HttpParameterCollection : Dictionary<string, string> {
 
-		public object this[string name] {
+		public new object this[string key] {
 
-			get => GetOrCreate (name);
+			get => base[key];
 
-			set => GetOrCreate (name, value);
+			set => base[key] = value?.ToString ();
 
 		}
 
@@ -24,49 +24,31 @@ namespace Eruru.Http {
 			string[] pairs = text.Split ('&');
 			foreach (string pair in pairs) {
 				string[] datas = pair.Split ('=');
-				Add (datas[0], datas.Length == 1 ? null : datas[1]);
+				this[datas[0]] = datas.Length == 1 ? null : datas[1];
 			}
-		}
-		public HttpParameterCollection (IEnumerable<HttpParameter> parameters) {
-			if (parameters is null) {
-				throw new ArgumentNullException (nameof (parameters));
-			}
-			AddRange (parameters);
 		}
 
-		public HttpParameter Add (string name, object value) {
-			if (name is null) {
-				throw new ArgumentNullException (nameof (name));
+		public void Add (string key, object value) {
+			if (key is null) {
+				throw new ArgumentNullException (nameof (key));
 			}
-			HttpParameter parameter = new HttpParameter (name, value);
-			Add (parameter);
-			return parameter;
-		}
-
-		public HttpParameter Get (string name) {
-			if (name is null) {
-				throw new ArgumentNullException (nameof (name));
-			}
-			foreach (HttpParameter parameter in this) {
-				if (HttpAPI.Equals (parameter.Name, name)) {
-					return parameter;
-				}
-			}
-			return null;
+			this[key] = value;
 		}
 
 		public override string ToString () {
 			StringBuilder stringBuilder = new StringBuilder ();
-			for (int i = 0; i < Count; i++) {
+			int i = 0;
+			foreach (KeyValuePair<string, string> parameter in this) {
 				if (i > 0) {
 					stringBuilder.Append ('&');
 				}
-				stringBuilder.Append (base[i].Name);
-				if (base[i].Value is null) {
+				stringBuilder.Append (parameter.Key);
+				if (parameter.Value is null) {
 					continue;
 				}
 				stringBuilder.Append ('=');
-				stringBuilder.Append (base[i].Value);
+				stringBuilder.Append (parameter.Value);
+				i++;
 			}
 			return stringBuilder.ToString ();
 		}
@@ -76,15 +58,6 @@ namespace Eruru.Http {
 		}
 		public static implicit operator HttpParameterCollection (string text) {
 			return new HttpParameterCollection (text);
-		}
-
-		HttpParameter GetOrCreate (string name, object value = null) {
-			HttpParameter parameter = Get (name);
-			if (parameter is null) {
-				parameter = new HttpParameter (name, value);
-			}
-			Add (parameter);
-			return parameter;
 		}
 
 	}

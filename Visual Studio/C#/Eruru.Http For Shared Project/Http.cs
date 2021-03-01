@@ -32,9 +32,22 @@ namespace Eruru.Http {
 			if (information is null) {
 				throw new ArgumentNullException (nameof (information));
 			}
-			return Request (null, information);
+			MemoryStream memoryStream = new MemoryStream ();
+			Request (null, information, memoryStream);
+			return Encoding.UTF8.GetString (memoryStream.ToArray ());
+		}
+		public string Request (string url) {
+			if (url is null) {
+				throw new ArgumentNullException (nameof (url));
+			}
+			MemoryStream memoryStream = new MemoryStream ();
+			Request (url, null, memoryStream);
+			return Encoding.UTF8.GetString (memoryStream.ToArray ());
 		}
 		public string Request (string url, HttpRequestInformation information) {
+			if (url is null) {
+				throw new ArgumentNullException (nameof (url));
+			}
 			if (information is null) {
 				throw new ArgumentNullException (nameof (information));
 			}
@@ -51,15 +64,21 @@ namespace Eruru.Http {
 			}
 			Request (null, information, responseStream);
 		}
-		public void Request (string url, HttpRequestInformation information, Stream responseStream) {
-			if (information is null) {
-				throw new ArgumentNullException (nameof (information));
+		public void Request (string url, Stream responseStream) {
+			if (url is null) {
+				throw new ArgumentNullException (nameof (url));
 			}
 			if (responseStream is null) {
 				throw new ArgumentNullException (nameof (responseStream));
 			}
+			Request (url, null, responseStream);
+		}
+		public void Request (string url, HttpRequestInformation information, Stream responseStream) {
+			if (responseStream is null) {
+				throw new ArgumentNullException (nameof (responseStream));
+			}
 			if (url is null) {
-				url = information.Url;
+				url = information?.Url;
 			}
 			StringBuilder stringBuilder = new StringBuilder ();
 			int questionMarkIndex = url.IndexOf ('?');
@@ -73,15 +92,17 @@ namespace Eruru.Http {
 					stringBuilder.Append ($"?{(HttpParameterCollection)url.Substring (questionMarkIndex + 1)}");
 				}
 			}
-			if (information.QueryStringParameters != null) {
+			if ((information?.QueryStringParameters?.Count ?? 0) > 0) {
 				stringBuilder.Append (hasParameter ? '&' : '?');
 				stringBuilder.Append (information.QueryStringParameters);
 			}
 			HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create (stringBuilder.ToString ());
-			httpWebRequest.Method = information.Type.ToString ();
+			if (information != null) {
+				httpWebRequest.Method = information.Type.ToString ();
+			}
 			httpWebRequest.CookieContainer = CookieContainer;
-			information.Request?.Invoke (httpWebRequest);
-			if (information.FormData != null) {
+			information?.Request?.Invoke (httpWebRequest);
+			if (information?.FormData != null) {
 				using (information.FormData) {
 					using (Stream stream = httpWebRequest.GetRequestStream ()) {
 						byte[] buffer = new byte[BufferSize];
@@ -95,18 +116,18 @@ namespace Eruru.Http {
 					}
 				}
 			}
-			using (HttpWebResponse httpWebResponse = HttpAPI.GetResponse (httpWebRequest)) {
-				information.Response?.Invoke (httpWebResponse);
+			using (HttpWebResponse httpWebResponse = HttpApi.GetResponse (httpWebRequest)) {
+				information?.Response?.Invoke (httpWebResponse);
 				using (Stream stream = httpWebResponse.GetResponseStream ()) {
 					byte[] buffer = new byte[BufferSize];
 					while (true) {
 						int length = stream.Read (buffer, 0, buffer.Length);
 						if (length <= 0) {
-							information.Responsing?.Invoke (true, responseStream);
+							information?.Responsing?.Invoke (true, responseStream);
 							break;
 						}
 						responseStream.Write (buffer, 0, length);
-						if (!information.Responsing?.Invoke (false, responseStream) ?? false) {
+						if (!information?.Responsing?.Invoke (false, responseStream) ?? false) {
 							break;
 						}
 					}
@@ -120,6 +141,14 @@ namespace Eruru.Http {
 			}
 			MemoryStream memoryStream = new MemoryStream ();
 			Request (null, information, memoryStream);
+			return memoryStream.ToArray ();
+		}
+		public byte[] RequestBytes (string url) {
+			if (url is null) {
+				throw new ArgumentNullException (nameof (url));
+			}
+			MemoryStream memoryStream = new MemoryStream ();
+			Request (url, null, memoryStream);
 			return memoryStream.ToArray ();
 		}
 		public byte[] RequestBytes (string url, HttpRequestInformation information) {
