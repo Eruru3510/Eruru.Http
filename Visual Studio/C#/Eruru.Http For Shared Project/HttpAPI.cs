@@ -1,12 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Text;
 
 namespace Eruru.Http {
 
 	public delegate void HttpAction ();
-	public delegate bool HttpResponsingFunc (bool isDone, Stream stream);
+	public delegate TResult HttpFunc<in T, out TResult> (T arg);
 
 	public static class HttpApi {
 
@@ -57,8 +56,11 @@ namespace Eruru.Http {
 			return stringBuilder.ToString ();
 		}
 
-		public static bool Equals (string a, string b) {
-			return string.Equals (a, b, StringComparison.OrdinalIgnoreCase);
+		public static bool Equals (string a, string b, bool ignoreCase) {
+			if (ignoreCase) {
+				return string.Equals (a, b, StringComparison.OrdinalIgnoreCase);
+			}
+			return a == b;
 		}
 
 		internal static HttpWebResponse GetResponse (HttpWebRequest httpWebRequest) {

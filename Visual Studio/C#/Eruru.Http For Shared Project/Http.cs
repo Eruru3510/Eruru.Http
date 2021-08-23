@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net;
 using System.Text;
 
@@ -9,74 +8,13 @@ namespace Eruru.Http {
 
 		public int BufferSize { get; set; } = 1024;
 		public Encoding Encoding { get; set; } = Encoding.UTF8;
-		public CookieContainer CookieContainer {
-
-			get {
-				if (_CookieContainer is null) {
-					_CookieContainer = new CookieContainer ();
-				}
-				return _CookieContainer;
-			}
-
-			set => _CookieContainer = value;
-
-		}
-
-		CookieContainer _CookieContainer;
+		public CookieContainer CookieContainer { get; set; } = new CookieContainer ();
 
 		public Http () {
 			ServicePointManager.SecurityProtocol = (SecurityProtocolType)(48 | 192 | 768 | 3072);
 		}
 
-		public string Request (HttpRequestInformation information) {
-			if (information is null) {
-				throw new ArgumentNullException (nameof (information));
-			}
-			MemoryStream memoryStream = new MemoryStream ();
-			Request (null, information, memoryStream);
-			return Encoding.UTF8.GetString (memoryStream.ToArray ());
-		}
-		public string Request (string url) {
-			if (url is null) {
-				throw new ArgumentNullException (nameof (url));
-			}
-			MemoryStream memoryStream = new MemoryStream ();
-			Request (url, null, memoryStream);
-			return Encoding.UTF8.GetString (memoryStream.ToArray ());
-		}
-		public string Request (string url, HttpRequestInformation information) {
-			if (url is null) {
-				throw new ArgumentNullException (nameof (url));
-			}
-			if (information is null) {
-				throw new ArgumentNullException (nameof (information));
-			}
-			MemoryStream memoryStream = new MemoryStream ();
-			Request (url, information, memoryStream);
-			return Encoding.UTF8.GetString (memoryStream.ToArray ());
-		}
-		public void Request (HttpRequestInformation information, Stream responseStream) {
-			if (information is null) {
-				throw new ArgumentNullException (nameof (information));
-			}
-			if (responseStream is null) {
-				throw new ArgumentNullException (nameof (responseStream));
-			}
-			Request (null, information, responseStream);
-		}
-		public void Request (string url, Stream responseStream) {
-			if (url is null) {
-				throw new ArgumentNullException (nameof (url));
-			}
-			if (responseStream is null) {
-				throw new ArgumentNullException (nameof (responseStream));
-			}
-			Request (url, null, responseStream);
-		}
 		public void Request (string url, HttpRequestInformation information, Stream responseStream) {
-			if (responseStream is null) {
-				throw new ArgumentNullException (nameof (responseStream));
-			}
 			if (url is null) {
 				url = information?.Url;
 			}
@@ -92,72 +30,110 @@ namespace Eruru.Http {
 					stringBuilder.Append ($"?{(HttpParameterCollection)url.Substring (questionMarkIndex + 1)}");
 				}
 			}
-			if ((information?.QueryStringParameters?.Count ?? 0) > 0) {
-				stringBuilder.Append (hasParameter ? '&' : '?');
-				stringBuilder.Append (information.QueryStringParameters);
+			if (information?.QueryStringParameters?.Count > 0) {
+				stringBuilder.Append ($"{(hasParameter ? '&' : '?')}{information.QueryStringParameters}");
 			}
 			HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create (stringBuilder.ToString ());
 			if (information != null) {
 				httpWebRequest.Method = information.Type.ToString ();
 			}
 			httpWebRequest.CookieContainer = CookieContainer;
-			information?.Request?.Invoke (httpWebRequest);
+			information?.OnRequest?.Invoke (httpWebRequest);
 			if (information?.FormData != null) {
 				using (information.FormData) {
 					using (Stream stream = httpWebRequest.GetRequestStream ()) {
 						byte[] buffer = new byte[BufferSize];
 						while (true) {
 							int length = information.FormData.Stream.Read (buffer, 0, buffer.Length);
-							if (length > 0) {
-								stream.Write (buffer, 0, length);
+							if (length == 0) {
+								information?.OnRequesting?.Invoke (length);
+								information?.OnRequested?.Invoke ();
+								break;
 							}
-							break;
+							stream.Write (buffer, 0, length);
+							if (!information?.OnRequesting?.Invoke (length) ?? false) {
+								break;
+							}
 						}
 					}
 				}
 			}
 			using (HttpWebResponse httpWebResponse = HttpApi.GetResponse (httpWebRequest)) {
-				information?.Response?.Invoke (httpWebResponse);
+				information?.OnResponse?.Invoke (httpWebResponse);
 				using (Stream stream = httpWebResponse.GetResponseStream ()) {
 					byte[] buffer = new byte[BufferSize];
 					while (true) {
 						int length = stream.Read (buffer, 0, buffer.Length);
-						if (length <= 0) {
-							information?.Responsing?.Invoke (true, responseStream);
+						if (length == 0) {
+							information?.OnResponding?.Invoke (responseStream);
+							information?.OnResponded?.Invoke (responseStream);
 							break;
 						}
 						responseStream.Write (buffer, 0, length);
-						if (!information?.Responsing?.Invoke (false, responseStream) ?? false) {
+						if (!information?.OnResponding?.Invoke (responseStream) ?? false) {
 							break;
 						}
 					}
 				}
 			}
 		}
-
-		public byte[] RequestBytes (HttpRequestInformation information) {
-			if (information is null) {
-				throw new ArgumentNullException (nameof (information));
+		public void Request (string url, Stream responseStream) {
+			Request (url, null, responseStream);
+		}
+		public void Request (HttpRequestInformation information, Stream responseStream) {
+			Request (null, information, responseStream);
+		}
+		public string Request (string url, HttpRequestInformation information) {
+			using (MemoryStream memoryStream = new MemoryStream ()) {
+				Request (url, information, memoryStream);
+				return Encoding.UTF8.GetString (memoryStream.ToArray ());
 			}
-			MemoryStream memoryStream = new MemoryStream ();
-			Request (null, information, memoryStream);
-			return memoryStream.ToArray ();
+		}
+		public string Request (HttpRequestInformation information) {
+			using (MemoryStream memoryStream = new MemoryStream ()) {
+				Request (null, information, memoryStream);
+				return Encoding.UTF8.GetString (memoryStream.ToArray ());
+			}
+		}
+		public string Request (string url) {
+			using (MemoryStream memoryStream = new MemoryStream ()) {
+				Request (url, null, memoryStream);
+				return Encoding.UTF8.GetString (memoryStream.ToArray ());
+			}
+		}
+
+		public byte[] RequestBytes (string url, HttpRequestInformation information) {
+			using (MemoryStream memoryStream = new MemoryStream ()) {
+				Request (url, information, memoryStream);
+				return memoryStream.ToArray ();
+			}
 		}
 		public byte[] RequestBytes (string url) {
-			if (url is null) {
-				throw new ArgumentNullException (nameof (url));
+			using (MemoryStream memoryStream = new MemoryStream ()) {
+				Request (url, null, memoryStream);
+				return memoryStream.ToArray ();
 			}
-			MemoryStream memoryStream = new MemoryStream ();
-			Request (url, null, memoryStream);
-			return memoryStream.ToArray ();
 		}
-		public byte[] RequestBytes (string url, HttpRequestInformation information) {
-			if (information is null) {
-				throw new ArgumentNullException (nameof (information));
+		public byte[] RequestBytes (HttpRequestInformation information) {
+			using (MemoryStream memoryStream = new MemoryStream ()) {
+				Request (null, information, memoryStream);
+				return memoryStream.ToArray ();
 			}
+		}
+		public MemoryStream RequestMemoryStream (string url, HttpRequestInformation information) {
 			MemoryStream memoryStream = new MemoryStream ();
 			Request (url, information, memoryStream);
-			return memoryStream.ToArray ();
+			return memoryStream;
+		}
+		public MemoryStream RequestMemoryStream (string url) {
+			MemoryStream memoryStream = new MemoryStream ();
+			Request (url, null, memoryStream);
+			return memoryStream;
+		}
+		public MemoryStream RequestMemoryStream (HttpRequestInformation information) {
+			MemoryStream memoryStream = new MemoryStream ();
+			Request (null, information, memoryStream);
+			return memoryStream;
 		}
 
 	}

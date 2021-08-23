@@ -1,18 +1,18 @@
-﻿using System;
-using Eruru.Http;
+﻿using Eruru.Http;
 using Eruru.Json;
+using System;
 
 namespace ConsoleApp1 {
 
 	class Program {
 
 		static void Main (string[] args) {
-			Console.Title = nameof (ConsoleApp1);
-			TestPixivic ();
+			Console.Title = string.Empty;
+			Pixivic ();
 			Console.ReadLine ();
 		}
 
-		static void TestPixivic () {
+		static void Pixivic () {
 			Http http = new Http ();
 			string vid;
 			JsonObject response = http.Request ("https://pix.ipv4.host/verificationCode");
@@ -29,7 +29,7 @@ namespace ConsoleApp1 {
 					{ "username", "a" },
 					{ "password", "a" }
 				}.ToString (),
-				Request = httpWebRequest => {
+				OnRequest = httpWebRequest => {
 					httpWebRequest.ContentType = "application/json";
 				}
 			};

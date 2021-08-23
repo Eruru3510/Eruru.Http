@@ -6,7 +6,7 @@ namespace Eruru.Http {
 
 	public class HttpFormData : IDisposable {
 
-		public Stream Stream { get; }
+		public Stream Stream { get; set; }
 
 		public HttpFormData (string text) {
 			if (text is null) {
